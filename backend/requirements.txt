@@ -1,0 +1,11 @@
+fastapi
+uvicorn[standard]
+sqlalchemy
+alembic
+groq
+pydantic
+pydantic-settings
+python-dotenv
+python-multipart
+pdfplumber
+python-pptx
