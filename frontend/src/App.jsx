@@ -81,35 +81,39 @@ export default function App() {
 
     setIsUploading(true);
     try {
-      await Promise.all(files.map(file => api.uploadDocument(userId, file)));
+      // Upload all files
+      const uploadResponses = await Promise.all(files.map(file => api.uploadDocument(userId, file)));
+      const mainDocument = uploadResponses[0]; // Track the first document uploaded
       
-      // Intelligent polling: Groq may take >5 seconds for large PDFs
-      let attempts = 0;
+      // Intelligent polling targeting the specific document generated
+      // Groq API with large PDFs may take > 60 seconds
       const pollInterval = setInterval(async () => {
-        attempts++;
         try {
-          const cardsData = await api.getDueFlashcards(userId);
-          if (cardsData.items && cardsData.items.length > 0) {
+          const docCards = await api.getDocumentFlashcards(mainDocument.id);
+          // When the background task successfully writes the cards to the database
+          if (docCards && docCards.length > 0) {
             clearInterval(pollInterval);
-            loadDueCards(); // Loads state and triggers view transition
+            setIsUploading(false);
+            
+            // Reload sidebar history and stats
+            loadHistory();
             loadStats();
-            loadHistory();
-            setIsUploading(false);
-          } else if (attempts >= 15) { // 30 second timeout max
-            clearInterval(pollInterval);
-            setIsUploading(false);
-            loadHistory();
-            alert("Card generation is taking longer than expected. Check the 'Past Documents' tab in a minute.");
+            
+            // Immediately dive into the newly generated document review
+            setCards(docCards);
+            setViewingDocument(mainDocument);
+            setCurrentCardIndex(0);
+            setIsFlipped(false);
+            setActiveView('quiz');
           }
         } catch (err) {
           console.error("Polling error:", err);
-          clearInterval(pollInterval);
-          setIsUploading(false);
+          // We don't clear interval on network blips, just keep waiting
         }
-      }, 2000); // Check every 2 seconds
+      }, 3000); // Check precisely every 3 seconds infinitely
 
     } catch (err) {
-      console.error(err);
+      console.error("Upload failed", err);
       setIsUploading(false);
     }
   };
