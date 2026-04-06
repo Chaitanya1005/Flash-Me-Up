@@ -1,5 +1,5 @@
 /* eslint-disable no-undef */
-const API_BASE = 'http://localhost:8080/api';
+const API_BASE = 'https://flash-me-up.onrender.com/api';
 
 export const api = {
   createUser: async (email) => {
