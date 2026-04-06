@@ -82,13 +82,32 @@ export default function App() {
     setIsUploading(true);
     try {
       await Promise.all(files.map(file => api.uploadDocument(userId, file)));
-      // Background task processing might take a few seconds
-      setTimeout(() => {
-        loadDueCards();
-        loadStats();
-        loadHistory();
-        setIsUploading(false);
-      }, 5000);
+      
+      // Intelligent polling: Groq may take >5 seconds for large PDFs
+      let attempts = 0;
+      const pollInterval = setInterval(async () => {
+        attempts++;
+        try {
+          const cardsData = await api.getDueFlashcards(userId);
+          if (cardsData.items && cardsData.items.length > 0) {
+            clearInterval(pollInterval);
+            loadDueCards(); // Loads state and triggers view transition
+            loadStats();
+            loadHistory();
+            setIsUploading(false);
+          } else if (attempts >= 15) { // 30 second timeout max
+            clearInterval(pollInterval);
+            setIsUploading(false);
+            loadHistory();
+            alert("Card generation is taking longer than expected. Check the 'Past Documents' tab in a minute.");
+          }
+        } catch (err) {
+          console.error("Polling error:", err);
+          clearInterval(pollInterval);
+          setIsUploading(false);
+        }
+      }, 2000); // Check every 2 seconds
+
     } catch (err) {
       console.error(err);
       setIsUploading(false);
