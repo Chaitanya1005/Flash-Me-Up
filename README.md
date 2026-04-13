@@ -60,22 +60,3 @@ npm run dev
 ```
 
 ---
-
-## 🌐 Deployment Instructions
-
-### Deploying the Backend to Render
-1. Push your full codebase to GitHub and connect it to [Render.com](https://render.com).
-2. Create a new **Web Service** and select the `/backend` folder as your Root Directory.
-3. **Build Command**: `pip install -r requirements.txt`
-4. **Start Command**: `uvicorn app.main:app --host 0.0.0.0 --port 10000`
-5. Inject your `GROQ_API_KEY` directly into Render's Environment Variables panel.
-
-### Deploying the Frontend to Vercel
-1. Set the `API_BASE` in `frontend/src/api.js` to point to your live Render API URL (e.g., `https://flash-me-up.onrender.com/api`).
-2. Import your GitHub repository into [Vercel](https://vercel.com).
-3. Set the Framework Preset to **Vite** and the **Root Directory** to `frontend`.
-4. Click Deploy. Vercel will automatically run `npm run build` and distribute your UI out to the edge.
-
----
-
-*Master your materials.*
